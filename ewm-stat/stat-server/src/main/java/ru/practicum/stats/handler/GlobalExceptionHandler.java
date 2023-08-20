@@ -12,51 +12,41 @@ import javax.validation.ConstraintViolationException;
 
 @Slf4j
 @RestControllerAdvice
-public class ErrorHandler {
+public class GlobalExceptionHandler {
 
     @ExceptionHandler
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public ErrorInfo invalidArgumentHandle(final ConstraintViolationException e) {
+    public ErrorResponse invalidArgumentHandle(final ConstraintViolationException e) {
         log.warn("{}: {}", e.getClass().getSimpleName(), e.getMessage(), e);
-        return new ErrorInfo("Validation error", e.getMessage());
+        return new ErrorResponse("Validation error", e.getMessage());
     }
 
     @ExceptionHandler
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public ErrorInfo invalidArgumentHandle(final MethodArgumentNotValidException e) {
+    public ErrorResponse invalidArgumentHandle(final MethodArgumentNotValidException e) {
         log.warn("{}: {}", e.getClass().getSimpleName(), e.getMessage(), e);
-        return new ErrorInfo("Validation error", e.getMessage());
+        return new ErrorResponse("Validation error", e.getMessage());
     }
 
     @ExceptionHandler
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public ErrorInfo missingRequestParameterHandle(final MissingServletRequestParameterException e) {
+    public ErrorResponse missingRequestParameterHandle(final MissingServletRequestParameterException e) {
         log.warn("{}: {}", e.getClass().getSimpleName(), e.getMessage(), e);
-        return new ErrorInfo("Missing request parameter", e.getMessage());
+        return new ErrorResponse("Missing request parameter", e.getMessage());
     }
 
     @ExceptionHandler
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public ErrorInfo illegalStateHandle(final IllegalStateException e) {
+    public ErrorResponse illegalStateHandle(final IllegalStateException e) {
         log.warn("{}: {}", e.getClass().getSimpleName(), e.getMessage(), e);
-        return new ErrorInfo("Invalid arguments given", e.getMessage());
+        return new ErrorResponse("Invalid arguments given", e.getMessage());
     }
 
     @ExceptionHandler
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-    public ErrorInfo unexpectedErrorHandle(final Throwable e) {
+    public ErrorResponse unexpectedErrorHandle(final Throwable e) {
         log.warn("{}: {}", e.getClass().getSimpleName(), e.getMessage(), e);
-        return new ErrorInfo("Internal server error", e.getMessage());
-    }
-
-    public static class ErrorInfo {
-        String error;
-        String description;
-
-        public ErrorInfo(String error, String description) {
-            this.error = error;
-            this.description = description;
-        }
+        return new ErrorResponse("An unexpected error has occurred", e.getMessage());
     }
 
 }
