@@ -33,41 +33,32 @@ public class CompilationService {
             compilationRequestDto.setPinned(false);
         }
         Set<Event> events = listToSet(eventRepository.findEventsByIdIn(compilationRequestDto.getEvents()));
-        checkIfAllEventsFound(events.size(), compilationRequestDto.getEvents().size());
-        Compilation compilation = compilationRepository.save(compilationMapper.toCompilation(compilationRequestDto, events));
+        checkFoundEvents(events.size(), compilationRequestDto.getEvents().size());
+        Compilation compilation = compilationRepository.save(
+                compilationMapper.toCompilation(compilationRequestDto, events
+                ));
+
         return compilationMapper.toCompilationDto(compilation);
     }
 
 
     @Transactional
     public CompilationResponseDto update(CompilationRequestDto compilationRequestDto, Long compId) {
-
-        Compilation compilation = checkIfCompExistsAndGet(compId);
-        if (compilationRequestDto.getTitle() != null) {
-            compilation.setTitle(compilationRequestDto.getTitle());
-        }
-        if (compilationRequestDto.getPinned() != null) {
-            compilation.setPinned(compilationRequestDto.getPinned());
-        }
-        if (compilationRequestDto.getEvents() != null) {
-            Set<Event> events = listToSet(eventRepository.findEventsByIdIn(compilationRequestDto.getEvents()));
-            checkIfAllEventsFound(events.size(), compilationRequestDto.getEvents().size());
-            compilation.setEvents(events);
-        }
-
+        Compilation compilation = getCompilation(compId);
+        setCompilation(compilationRequestDto, compilation);
         return compilationMapper.toCompilationDto(compilationRepository.save(compilation));
     }
 
 
     @Transactional
     public void delete(Long compId) {
-        checkIfCompExists(compId);
+        checkExisted(compId);
         compilationRepository.deleteById(compId);
     }
 
     @Transactional(readOnly = true)
     public CompilationResponseDto getById(Long compId) {
-        return compilationMapper.toCompilationDto(checkIfCompExistsAndGet(compId));
+        return compilationMapper.toCompilationDto(getCompilation(compId));
     }
 
 
@@ -80,18 +71,18 @@ public class CompilationService {
         return compilationMapper.toCompilationDto(compilations);
     }
 
-    private Compilation checkIfCompExistsAndGet(Long compId) {
+    private Compilation getCompilation(Long compId) {
         return compilationRepository.findById(compId)
                 .orElseThrow(() -> new EntityNotFoundException(Compilation.class, compId));
     }
 
-    private void checkIfCompExists(Long compId) {
+    private void checkExisted(Long compId) {
         if (!compilationRepository.existsById(compId)) {
             throw new EntityNotFoundException(Compilation.class, compId);
         }
     }
 
-    private void checkIfAllEventsFound(Integer found, Integer provided) {
+    private void checkFoundEvents(Integer found, Integer provided) {
         if (!found.equals(provided)) {
             throw new EntityNotFoundException("Not all compilations found");
         }
@@ -99,5 +90,19 @@ public class CompilationService {
 
     private Set<Event> listToSet(List<Event> events) {
         return new HashSet<>(events);
+    }
+
+    private void setCompilation(CompilationRequestDto dto, Compilation compilation) {
+        if (dto.getTitle() != null) {
+            compilation.setTitle(dto.getTitle());
+        }
+        if (dto.getPinned() != null) {
+            compilation.setPinned(dto.getPinned());
+        }
+        if (dto.getEvents() != null) {
+            Set<Event> events = listToSet(eventRepository.findEventsByIdIn(dto.getEvents()));
+            checkFoundEvents(events.size(), dto.getEvents().size());
+            compilation.setEvents(events);
+        }
     }
 }
