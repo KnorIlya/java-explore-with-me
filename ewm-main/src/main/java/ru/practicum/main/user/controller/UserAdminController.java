@@ -2,6 +2,7 @@ package ru.practicum.main.user.controller;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.main.user.dto.UserDto;
@@ -21,22 +22,20 @@ public class UserAdminController {
     private final UserService userService;
 
     @PostMapping
-    @ResponseStatus(HttpStatus.CREATED)
-    public UserDto create(@Valid @RequestBody UserDto userDto) {
-        return userService.create(userDto);
+    public ResponseEntity<UserDto> create(@Valid @RequestBody UserDto userDto) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(userService.create(userDto));
     }
 
     @DeleteMapping("/{userId}")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void delete(@PathVariable Long userId) {
+    public ResponseEntity<Void> delete(@PathVariable Long userId) {
         userService.delete(userId);
+        return ResponseEntity.noContent().build();
     }
 
     @GetMapping
-    @ResponseStatus(HttpStatus.OK)
-    public List<UserDto> getUsers(@RequestParam(required = false) List<Long> ids,
-                                  @RequestParam(defaultValue = "0", required = false) @PositiveOrZero Integer from,
-                                  @RequestParam(defaultValue = "10", required = false) @Positive Integer size) {
-        return userService.getUsers(ids, from, size);
+    public ResponseEntity<List<UserDto>> getUsers(@RequestParam(required = false) List<Long> ids,
+                                                  @RequestParam(defaultValue = "0", required = false) @PositiveOrZero Integer from,
+                                                  @RequestParam(defaultValue = "10", required = false) @Positive Integer size) {
+        return ResponseEntity.ok(userService.getUsers(ids, from, size));
     }
 }

@@ -34,24 +34,26 @@ public class CategoryService {
 
     @Transactional
     public CategoryDto update(NewCategoryDto newCategoryDto, Long catId) {
-        checkIfCategoryExists(catId);
-        Category updatedCategory = categoryMapper.toCategory(newCategoryDto);
-        updatedCategory.setId(catId);
-        return categoryMapper.toCategoryDto(categoryRepository.save(updatedCategory));
+        checkCategoryExisted(catId);
+        Category updated = categoryMapper.toCategory(newCategoryDto);
+        updated.setId(catId);
+        return categoryMapper.toCategoryDto(categoryRepository.save(updated));
     }
 
 
     @Transactional
     public void delete(Long catId) {
-        checkIfCategoryExistsAndGet(catId);
-        checkIfEmpty(catId);
+        checkCategoryExisted(catId);
+        if (!isEmpty(catId)) {
+            throw new ForbiddenException("The category is not empty");
+        }
         categoryRepository.deleteById(catId);
     }
 
 
     @Transactional(readOnly = true)
     public CategoryDto getById(Long catId) {
-        return categoryMapper.toCategoryDto(checkIfCategoryExistsAndGet(catId));
+        return categoryMapper.toCategoryDto(getCategory(catId));
     }
 
 
@@ -61,18 +63,16 @@ public class CategoryService {
         return categoryMapper.toCategoryDto(categoryRepository.findAll(pageable).toList());
     }
 
-    private void checkIfEmpty(Long catId) {
-        if (!eventRepository.findEventsByCategoryId(catId).isEmpty()) {
-            throw new ForbiddenException("The category is not empty");
-        }
+    private boolean isEmpty(Long catId) {
+        return eventRepository.findEventsByCategoryId(catId).isEmpty();
     }
 
-    private Category checkIfCategoryExistsAndGet(Long catId) {
+    private Category getCategory(Long catId) {
         return categoryRepository.findById(catId)
                 .orElseThrow(() -> new EntityNotFoundException(Category.class, catId));
     }
 
-    private void checkIfCategoryExists(Long catId) {
+    private void checkCategoryExisted(Long catId) {
         if (!categoryRepository.existsById(catId)) {
             throw new EntityNotFoundException(Category.class, catId);
         }

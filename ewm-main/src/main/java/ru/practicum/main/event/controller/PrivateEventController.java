@@ -2,6 +2,7 @@ package ru.practicum.main.event.controller;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.main.event.dto.EventFullDto;
@@ -9,12 +10,12 @@ import ru.practicum.main.event.dto.EventShortDto;
 import ru.practicum.main.event.dto.NewEventDto;
 import ru.practicum.main.event.dto.UpdateEventDto;
 import ru.practicum.main.event.service.EventService;
+import ru.practicum.main.flag.OnCreate;
+import ru.practicum.main.flag.OnUpdate;
 import ru.practicum.main.request.dto.EventRequestStatusUpdateRequestDto;
 import ru.practicum.main.request.dto.EventRequestStatusUpdateResultDto;
 import ru.practicum.main.request.dto.ParticipationRequestDto;
 import ru.practicum.main.request.service.RequestService;
-import ru.practicum.main.flag.OnCreate;
-import ru.practicum.main.flag.OnUpdate;
 
 import javax.validation.Valid;
 import javax.validation.constraints.Positive;
@@ -32,38 +33,38 @@ public class PrivateEventController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public EventFullDto create(@Validated(OnCreate.class) @RequestBody NewEventDto newEventDto, @PathVariable Long userId) {
-        return eventService.create(newEventDto, userId);
+    public ResponseEntity<EventFullDto> create(@Validated(OnCreate.class) @RequestBody NewEventDto newEventDto, @PathVariable Long userId) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(eventService.create(newEventDto, userId));
     }
 
     @GetMapping
-    public List<EventShortDto> getAllByInitiatorId(@PathVariable Long userId,
-                                                   @RequestParam(defaultValue = "0", required = false) @PositiveOrZero Integer from,
-                                                   @RequestParam(defaultValue = "10", required = false) @Positive Integer size) {
-        return eventService.getAllByInitiatorId(userId, from, size);
+    public ResponseEntity<List<EventShortDto>> getAllByInitiatorId(@PathVariable Long userId,
+                                                                   @RequestParam(defaultValue = "0", required = false) @PositiveOrZero Integer from,
+                                                                   @RequestParam(defaultValue = "10", required = false) @Positive Integer size) {
+        return ResponseEntity.ok(eventService.getAllByInitiatorId(userId, from, size));
     }
 
     @GetMapping("/{eventId}")
-    public EventFullDto getEventByIdAndInitiatorId(@PathVariable Long eventId, @PathVariable Long userId) {
-        return eventService.getEventByIdAndInitiatorId(eventId, userId);
+    public ResponseEntity<EventFullDto> getEventByIdAndInitiatorId(@PathVariable Long eventId, @PathVariable Long userId) {
+        return ResponseEntity.ok(eventService.getEventByIdAndInitiatorId(eventId, userId));
     }
 
     @PatchMapping("/{eventId}")
-    public EventFullDto updateByInitiator(@Validated(OnUpdate.class) @RequestBody UpdateEventDto updatedEvent,
+    public ResponseEntity<EventFullDto> updateByInitiator(@Validated(OnUpdate.class) @RequestBody UpdateEventDto updatedEvent,
                                           @PathVariable Long eventId,
                                           @PathVariable Long userId) {
-        return eventService.updateByInitiator(updatedEvent, eventId, userId);
+        return ResponseEntity.ok(eventService.updateByInitiator(updatedEvent, eventId, userId));
     }
 
     @PatchMapping("/{eventId}/requests")
-    public EventRequestStatusUpdateResultDto processRequestsByInitiator(@RequestBody @Valid EventRequestStatusUpdateRequestDto updateRequest,
+    public ResponseEntity<EventRequestStatusUpdateResultDto> processRequestsByInitiator(@RequestBody @Valid EventRequestStatusUpdateRequestDto updateRequest,
                                                                         @PathVariable Long userId,
                                                                         @PathVariable Long eventId) {
-        return requestService.processRequestsByInitiator(updateRequest, userId, eventId);
+        return ResponseEntity.ok(requestService.processRequestsByInitiator(updateRequest, userId, eventId));
     }
 
     @GetMapping("/{eventId}/requests")
-    public List<ParticipationRequestDto> getRequestsByInitiator(@PathVariable Long userId, @PathVariable Long eventId) {
-        return requestService.getRequestsByInitiator(userId, eventId);
+    public ResponseEntity<List<ParticipationRequestDto>> getRequestsByInitiator(@PathVariable Long userId, @PathVariable Long eventId) {
+        return ResponseEntity.ok(requestService.getRequestsByInitiator(userId, eventId));
     }
 }
